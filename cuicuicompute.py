@@ -4,8 +4,10 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import requests
+from picamera2 import Picamera2
+from datetime import datetime
 
 def box_label(image, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
   lw = max(round(sum(image.shape) / 2 * 0.003), 2)
@@ -58,31 +60,73 @@ class Telegram:
     def send_message(self, message : str):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage?chat_id={self.chat_id}&text={message}"
         print(requests.get(url).json()) # this sends the message
+    
+    def send_photo(self, message: str, frame):
+        url = f"https://api.telegram.org/bot{self.token}/sendPhoto?chat_id={self.chat_id}&text={message}"  
+
+        # Encode the image as JPEG
+        _, encoded_image = cv2.imencode('.jpg', frame)
+
+        # Create the multipart/form-data payload
+        files = {'photo': ('image.jpg', encoded_image.tobytes(), 'image/jpeg')}
+
+        # Make the POST request to the Telegram API
+        response = requests.post(url, files=files)
+
+        # Check the response status
+        if response.status_code == 200:
+            print('Image sent successfully!')
+        else:
+            print('Failed to send image:', response.text)
+
+        return True
+
+class ImageSender:
+    self.telegram_token = "6063542908:AAHYcvD27LQstloZn7gQ2b-beOz7-octfo8"
+    self.telegram_chat_id = "117147754"
+
+    def __init__(self):
+        self.telegram = Telegram(self.telegram_token, self.telegram_chat_id)
+        is_bird_here = False
+        last_time_sent = datetime.now()
+
+    def sendImageWithinLimits(number_of_objects: int, image):
+      if number_of_objects <= 0:
+        is_bird_here = False
+        return
+      
+      elif not is_bird_here:
+        telegram.send_message("Bird just arrived !")
+        telegram.send_photo(image)
+        is_bird_here = True
+
+      else:
+        now = datetime.now().date()
+        if last_time_sent.date() - now >= timedelta(hours=1):
+          telegram.send_message("Bird still here...")
+          telegram.send_photo(image)
+          last_time_sent = datetime.now()
 
 def main():
     print("Hello World!")
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
-    rtsp_stream = 'rtsp://braoutch:aeddqkmo@192.168.50.212:8080/' 
+    # rtsp_stream = 'rtsp://braoutch:aeddqkmo@192.168.50.212:8080/' 
+    # cap = cv2.VideoCapture(rtsp_stream, cv2.CAP_FFMPEG)
 
-    telegram_token = "6063542908:AAHYcvD27LQstloZn7gQ2b-beOz7-octfo8"
-    telegram_chat_id = "117147754"
-    telegram = Telegram(telegram_token, telegram_chat_id)
+    picam2 = Picamera2()
+    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+    picam2.start()
 
-    # rtsp_stream = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4'
+    image_sender = ImageSender()
+
     os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
 
-    cap = cv2.VideoCapture(rtsp_stream, cv2.CAP_FFMPEG)
-
-    if not cap.isOpened():
-        print('Cannot open RTSP stream')
-        exit(-1)
-
     while True:
-        _, frame = cap.read()
-        cv2.imshow('RTSP stream', frame)
+        frame = picam2.capture_array()
+        # cv2.imshow('RTSP stream', frame)
         # Run batched inference on a list of images
         # results = model(frame)  # return a list of Results objects
-        results = model(rtsp_stream)  # return a list of Results objects
+        results = model(frame)  # return a list of Results objects
 
         # Process results list
         for result in results:
@@ -91,10 +135,10 @@ def main():
             keypoints = result.keypoints  # Keypoints object for pose outputs
             probs = result.probs  # Probs object for classification outputs
             print(boxes.data)
-            telegram.send_message(str(len(boxes)) + " objects identified.")
 
-            plot_bboxes(frame, boxes.data, score=True)
+        image_sender.sendImageWithinLimits(results.size(), frame)
 
+        # plot_bboxes(frame, boxes.data, score=True)
 
         if cv2.waitKey(1) == 27:
             break
