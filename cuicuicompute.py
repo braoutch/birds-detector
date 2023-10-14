@@ -153,8 +153,17 @@ def main():
     while True:
         print("Detection attempt...")
         cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
+        if cap is None:
+           print("Capture connection error, retrying in 5...")
+           time.sleep(5)
+           continue
         ret, frame = cap.read()
         cap.release()
+
+        if ret is None or ret is False:
+           print("Image retrieval error, retrying in 5...")
+           time.sleep(5)
+           continue
 
         if args.imshow:
           cv2.imshow('RTSP stream', frame)
