@@ -153,8 +153,9 @@ def main():
     while True:
         print("Detection attempt...")
         cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
-
         ret, frame = cap.read()
+        cap.release()
+
         if args.imshow:
           cv2.imshow('RTSP stream', frame)
           cv2.waitKey(1)
@@ -184,8 +185,7 @@ def main():
         # if cv2.waitKey(1) == 27:
         #     break
         
-        cap.release()
-        time.sleep(2)
+        time.sleep(1)
 
 
     cv2.destroyAllWindows()
