@@ -82,23 +82,23 @@ class Telegram:
         return True
 
 class ImageSender:
-    self.telegram_token = "6063542908:AAHYcvD27LQstloZn7gQ2b-beOz7-octfo8"
-    self.telegram_chat_id = "117147754"
-
     def __init__(self):
+        self.telegram_token = "6063542908:AAHYcvD27LQstloZn7gQ2b-beOz7-octfo8"
+        self.telegram_chat_id = "117147754"
+
         self.telegram = Telegram(self.telegram_token, self.telegram_chat_id)
         is_bird_here = False
         last_time_sent = datetime.now()
 
-    def sendImageWithinLimits(number_of_objects: int, image):
+    def sendImageWithinLimits(self, number_of_objects: int, image):
       print("Sending (or not)", number_of_objects, "detections")
       if number_of_objects <= 0:
         is_bird_here = False
         return
       
       elif not is_bird_here:
-        telegram.send_message("Bird just arrived !")
-        telegram.send_photo(image)
+        self.telegram.send_message("Bird just arrived !")
+        self.telegram.send_photo(image)
         is_bird_here = True
 
       else:
