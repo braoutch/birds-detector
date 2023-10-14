@@ -112,7 +112,7 @@ def main():
     print("Hello World!")
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
     url = 'tcp://192.168.50.212:8888/' 
-    # cap = cv2.VideoCapture(rtsp_stream, cv2.CAP_FFMPEG)
+    cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
 
     # picam2 = Picamera2()
     # picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
@@ -124,6 +124,8 @@ def main():
 
     while True:
         print("Detection attempt...")
+        ret, frame = cap.read()
+        print("CV READ:", ret)
         # frame = picam2.capture_array()
         # cv2.imshow('RTSP stream', frame)
         # Run batched inference on a list of images
@@ -140,7 +142,7 @@ def main():
 
         frame = None
 
-        image_sender.sendImageWithinLimits(results.size(), frame)
+        image_sender.sendImageWithinLimits(len(results), frame)
 
         # plot_bboxes(frame, boxes.data, score=True)
 
