@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 # import matplotlib.pyplot as plt
 import requests
-from picamera2 import Picamera2
+# from picamera2 import Picamera2
 from datetime import datetime
 
 def box_label(image, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
@@ -91,6 +91,7 @@ class ImageSender:
         last_time_sent = datetime.now()
 
     def sendImageWithinLimits(number_of_objects: int, image):
+      print("Sending (or not)", number_of_objects, "detections")
       if number_of_objects <= 0:
         is_bird_here = False
         return
@@ -110,23 +111,24 @@ class ImageSender:
 def main():
     print("Hello World!")
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
-    # rtsp_stream = 'rtsp://braoutch:aeddqkmo@192.168.50.212:8080/' 
+    url = 'tcp://192.168.50.212:8888/' 
     # cap = cv2.VideoCapture(rtsp_stream, cv2.CAP_FFMPEG)
 
-    picam2 = Picamera2()
-    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
-    picam2.start()
+    # picam2 = Picamera2()
+    # picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+    # picam2.start()
 
     image_sender = ImageSender()
 
     os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
 
     while True:
-        frame = picam2.capture_array()
+        print("Detection attempt...")
+        # frame = picam2.capture_array()
         # cv2.imshow('RTSP stream', frame)
         # Run batched inference on a list of images
         # results = model(frame)  # return a list of Results objects
-        results = model(frame)  # return a list of Results objects
+        results = model(url, stream=True)  # return a list of Results objects
 
         # Process results list
         for result in results:
