@@ -1,0 +1,13 @@
+[Unit]
+Description=Cuicui Streamer
+After=network-online.target
+
+[Service]
+Type=simple
+
+ExecStart=/home/pi/cuicuistreamer.sh
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
