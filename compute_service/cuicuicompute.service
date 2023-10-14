@@ -1,0 +1,13 @@
+[Unit]
+Description=Cuicui Compute
+After=network-online.target
+
+[Service]
+Type=simple
+
+ExecStart=/home/pi/cuicuicompute.sh
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
