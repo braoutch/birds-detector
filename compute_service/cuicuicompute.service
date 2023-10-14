@@ -4,7 +4,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-
+User=pi
+WorkingDirectory=/home/pi
 ExecStart=/home/pi/cuicuicompute.sh
 
 Restart=on-failure

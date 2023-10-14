@@ -4,6 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
+User=pi
 
 ExecStart=/home/pi/cuicuistreamer.sh
 
