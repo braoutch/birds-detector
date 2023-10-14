@@ -87,26 +87,26 @@ class ImageSender:
         self.telegram_chat_id = "117147754"
 
         self.telegram = Telegram(self.telegram_token, self.telegram_chat_id)
-        is_bird_here = False
-        last_time_sent = datetime.now()
+        self.is_bird_here = False
+        self.last_time_sent = datetime.now()
 
     def sendImageWithinLimits(self, number_of_objects: int, image):
       print("Sending (or not)", number_of_objects, "detections")
       if number_of_objects <= 0:
-        is_bird_here = False
+        self.is_bird_here = False
         return
       
-      elif not is_bird_here:
+      elif not self.is_bird_here:
         self.telegram.send_message("Bird just arrived !")
-        self.telegram.send_photo(image)
-        is_bird_here = True
+        # self.telegram.send_photo(image)
+        self.is_bird_here = True
 
       else:
         now = datetime.now().date()
-        if last_time_sent.date() - now >= timedelta(hours=1):
-          telegram.send_message("Bird still here...")
-          telegram.send_photo(image)
-          last_time_sent = datetime.now()
+        if self.last_time_sent.date() - now >= datetime.timedelta(hours=1):
+          self.telegram.send_message("Bird still here...")
+          self.telegram.send_photo(image)
+          self.last_time_sent = datetime.now()
 
 def main():
     print("Hello World!")
@@ -131,12 +131,14 @@ def main():
         results = model(url, stream=True)  # return a list of Results objects
 
         # Process results list
-        for result in results:
-            boxes = result.boxes  # Boxes object for bbox outputs
-            masks = result.masks  # Masks object for segmentation masks outputs
-            keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Probs object for classification outputs
-            print(boxes.data)
+        # for result in results:
+        #     boxes = result.boxes  # Boxes object for bbox outputs
+        #     masks = result.masks  # Masks object for segmentation masks outputs
+        #     keypoints = result.keypoints  # Keypoints object for pose outputs
+        #     probs = result.probs  # Probs object for classification outputs
+        #     print(boxes.data)
+
+        frame = None
 
         image_sender.sendImageWithinLimits(results.size(), frame)
 
