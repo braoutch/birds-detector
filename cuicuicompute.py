@@ -170,7 +170,7 @@ def main():
           cv2.imshow('RTSP stream', frame)
           cv2.waitKey(1)
         # Run batched inference on a list of images
-        results = model.predict(frame, verbose=False)  # return a list of Results objects
+        results = model.predict(frame, verbose=False, classes=[14])  # return a list of Results objects
 
         count = 0
         labels = []
@@ -186,6 +186,8 @@ def main():
               labels.append(label)
               if 'bird' in label:
                   image_sender.sendImageWithinLimits(count, label, frame)
+
+            # print('class', boxes.cls)  
 
         print(len(labels), "label:", labels)
 
