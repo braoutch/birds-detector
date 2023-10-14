@@ -151,6 +151,7 @@ def main():
     #    ret, frame = cap.read()
 
     while True:
+        start_time = datetime.now()
         print("Detection attempt...")
         cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
         if cap is None:
@@ -195,6 +196,8 @@ def main():
         #     break
         
         time.sleep(1)
+        end_time = datetime.now()
+        print("Loop closed in", (end_time - start_time).total_seconds())
 
 
     cv2.destroyAllWindows()
