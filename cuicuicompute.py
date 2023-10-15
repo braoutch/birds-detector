@@ -108,6 +108,11 @@ class ImageSender:
         self.is_bird_here = False
         self.last_time_sent = datetime.now()
 
+    def sendImage(self, message: str, image):
+      self.telegram.send_message(message)
+      self.telegram.send_photo(image)
+
+
     def sendImageWithinLimits(self, number_of_objects: int, message: str, image):
       print("Sending (or not)", number_of_objects, "detections")
       if number_of_objects <= 0:
@@ -132,7 +137,7 @@ def main():
     parser = argparse.ArgumentParser("simple_example")
     parser.add_argument("--imshow", "-i", help="display the images in a ui.", action="store_true")
     parser.add_argument("--send-all-images", "-s", help="Send all the images instead of just the ones with a detection.", action="store_true")
-    parser.add_argument("--send-update", "-u", help="Send an image according to the rate even if there was no detections. No influence on the rate of the other images.", action="store_true")
+    parser.add_argument("--send-daily-updates", "-u", help="Send an image according to the rate even if there was no detections. No influence on the rate of the other images.", action="store_true")
     parser.add_argument("--rate", "-r", help="Define sendig rate in minutes. -1 is ignoring the rate", type=int, default=60)
     parser.add_argument("--all-classes", "-a", help="Track any object instead of just birds", action="store_true")
     parser.add_argument("--persons-and-birds", "-p", help="Track birds and persons instead of just birds", action="store_true")
@@ -143,7 +148,7 @@ def main():
     print("send all images:", args.send_all_images)
     print("all classes:", args.all_classes)
     print("persons and birds:", args.persons_and_birds)
-    print("send update:", args.send_update)
+    print("send update:", args.send_daily_updates)
 
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
     url = 'tcp://192.168.50.212:8080/' 
@@ -158,6 +163,7 @@ def main():
     # while pre < 240:
     #    pre = pre + 1
     #    ret, frame = cap.read()
+    last_daily_send = datetime.now() - timedelta(days=2)
 
     while True:
         start_time = datetime.now()
@@ -174,6 +180,12 @@ def main():
            print("Image retrieval error, retrying in 5...")
            time.sleep(5)
            continue
+        
+        if args.send_daily_updates is True:
+           print("Sending a daily update...")
+           if(last_daily_send - datetime.now > timedelta(days=1)):
+              image_sender.sendImage("Daily update...", frame)
+              last_daily_send = datetime.now()
 
         if args.imshow:
           cv2.imshow('RTSP stream', frame)
