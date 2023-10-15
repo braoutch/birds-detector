@@ -191,14 +191,14 @@ def main():
         label = ""
         # Process results list
         for result in results:
-            count = count + 1
             boxes = result.boxes  # Boxes object for bbox outputs
             for box in boxes.data:
+              count = count + 1
               if label != "":
                  label = label + "; "   
               label = label + get_label(box)
               labels.append(label)
-        if count > 0 or args.send_all_images: 
+        if count > 0 or args.send_all_images is True: 
           image_sender.sendImageWithinLimits(count, label, frame)
         print(len(labels), "label:", labels)
 
