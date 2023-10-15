@@ -197,8 +197,8 @@ def main():
                  label = label + "; "   
               label = label + get_label(box)
               labels.append(label)
-
-        image_sender.sendImageWithinLimits(count, label, frame)
+        if count > 0 or args.send_all_images: 
+          image_sender.sendImageWithinLimits(count, label, frame)
         print(len(labels), "label:", labels)
 
         # plot_bboxes(frame, boxes.data, score=True)
