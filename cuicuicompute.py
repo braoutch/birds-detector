@@ -183,7 +183,7 @@ def main():
         
         if args.send_daily_updates is True:
            print("Sending a daily update...")
-           if(last_daily_send - datetime.now > timedelta(days=1)):
+           if(last_daily_send - datetime.now() > timedelta(days=1)):
               image_sender.sendImage("Daily update...", frame)
               last_daily_send = datetime.now()
 
