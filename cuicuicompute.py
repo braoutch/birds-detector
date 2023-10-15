@@ -163,7 +163,7 @@ def main():
     # while pre < 240:
     #    pre = pre + 1
     #    ret, frame = cap.read()
-    last_daily_send = datetime.now() - timedelta(days=2)
+    last_daily_send = datetime.now() - timedelta(days=10)
 
     while True:
         start_time = datetime.now()
@@ -186,6 +186,11 @@ def main():
            if(datetime.now() - last_daily_send > timedelta(days=1)):
               image_sender.sendImage("Daily update...", frame)
               last_daily_send = datetime.now()
+              print("Daily update sent.")
+           else:
+              print("Not the right time, skipping.")
+
+
 
         if args.imshow:
           cv2.imshow('RTSP stream', frame)
