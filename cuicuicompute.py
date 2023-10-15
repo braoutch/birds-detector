@@ -3,10 +3,8 @@ import os
 from ultralytics import YOLO
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw
 # import matplotlib.pyplot as plt
 import requests
-# from picamera2 import Picamera2
 from datetime import datetime, timedelta
 import time 
 import argparse
@@ -101,9 +99,10 @@ class Telegram:
         return True
 
 class ImageSender:
-    def __init__(self):
+    def __init__(self, rate: int):
         self.telegram_token = "6063542908:AAHYcvD27LQstloZn7gQ2b-beOz7-octfo8"
         self.telegram_chat_id = "117147754"
+        self.rate = rate
 
         self.telegram = Telegram(self.telegram_token, self.telegram_chat_id)
         self.is_bird_here = False
@@ -122,7 +121,7 @@ class ImageSender:
 
       else:
         now = datetime.now().date()
-        if self.last_time_sent.date() - now >= timedelta(hours=1):
+        if self.rate == -1 or self.last_time_sent.date() - now >= timedelta(minutes=self.rate):
           self.telegram.send_message("Bird still here...")
           self.telegram.send_photo(image)
           self.last_time_sent = datetime.now()
@@ -131,16 +130,25 @@ def main():
     print("Hello World!")
 
     parser = argparse.ArgumentParser("simple_example")
-    parser.add_argument("--imshow", help="display the images in a ui.", action="store_true")
+    parser.add_argument("--imshow", "-i", help="display the images in a ui.", action="store_true")
+    parser.add_argument("--send-all-images", "-s", help="Send all the images instead of just the ones with a detection.", action="store_true")
+    parser.add_argument("--rate", "-r", help="Define sendig rate in minutes. -1 is ignoring the rate", type=int, default=60)
+    parser.add_argument("--all-classes", "-a", help="Track any object instead of just birds", action="store_true")
+    parser.add_argument("--persons-and-birds", "-p", help="Track birds and persons instead of just birds", action="store_true")
     args = parser.parse_args()
 
     print("UI:", args.imshow)
+    print("Publishing rate:", args.rate)
+    print("send all images:", args.send_all_images)
+    print("rate:", args.rate)
+    print("all classes:", args.all_classes)
+    print("persons and birds:", args.persons_and_birds)
 
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
     url = 'tcp://192.168.50.212:8080/' 
     # url = 'sample.mp4' 
 
-    image_sender = ImageSender()
+    image_sender = ImageSender(args.rate)
 
     os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
     
@@ -170,37 +178,38 @@ def main():
           cv2.imshow('RTSP stream', frame)
           cv2.waitKey(1)
         # Run batched inference on a list of images
-        results = model.predict(frame, verbose=False, classes=[14])  # return a list of Results objects
+        if args.persons_and_birds:
+           results = model.predict(frame, verbose=False, classes=[0, 14])  # return a list of Results objects
+        elif args.all_classes:
+           results = model.predict(frame, verbose=False)
+        else:
+           results = model.predict(frame, verbose=False, classes=[14])  # return a list of Results objects
 
         count = 0
         labels = []
+        label = ""
         # Process results list
         for result in results:
             count = count + 1
             boxes = result.boxes  # Boxes object for bbox outputs
-            masks = result.masks  # Masks object for segmentation masks outputs
-            keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Probs object for classification outputs
             for box in boxes.data:
-              label = get_label(box)
+              if label != "":
+                 label = label + "; "   
+              label = label + get_label(box)
               labels.append(label)
-              if 'bird' in label:
-                  image_sender.sendImageWithinLimits(count, label, frame)
 
-            # print('class', boxes.cls)  
-
+        image_sender.sendImageWithinLimits(count, label, frame)
         print(len(labels), "label:", labels)
 
         # plot_bboxes(frame, boxes.data, score=True)
         # cv2.waitKey(1)
 
-        # if cv2.waitKey(1) == 27:
-        #     break
+        if cv2.waitKey(1) == 27:
+            break
         
         time.sleep(1)
         end_time = datetime.now()
         print("Loop closed in", (end_time - start_time).total_seconds())
-
 
     cv2.destroyAllWindows()
 
