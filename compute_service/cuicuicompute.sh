@@ -1,2 +1,2 @@
 #!/bin/bash
-/home/pi/miniforge3/bin/python3 /home/pi/cuicuicompute.py
+/home/pi/miniforge3/bin/python3 -u /home/pi/cuicuicompute.py

@@ -132,6 +132,7 @@ def main():
     parser = argparse.ArgumentParser("simple_example")
     parser.add_argument("--imshow", "-i", help="display the images in a ui.", action="store_true")
     parser.add_argument("--send-all-images", "-s", help="Send all the images instead of just the ones with a detection.", action="store_true")
+    parser.add_argument("--send-update", "-u", help="Send an image according to the rate even if there was no detections. No influence on the rate of the other images.", action="store_true")
     parser.add_argument("--rate", "-r", help="Define sendig rate in minutes. -1 is ignoring the rate", type=int, default=60)
     parser.add_argument("--all-classes", "-a", help="Track any object instead of just birds", action="store_true")
     parser.add_argument("--persons-and-birds", "-p", help="Track birds and persons instead of just birds", action="store_true")
@@ -140,9 +141,9 @@ def main():
     print("UI:", args.imshow)
     print("Publishing rate:", args.rate)
     print("send all images:", args.send_all_images)
-    print("rate:", args.rate)
     print("all classes:", args.all_classes)
     print("persons and birds:", args.persons_and_birds)
+    print("send update:", args.send_update)
 
     model = YOLO('yolov5su.pt')  # pretrained YOLOv8n model
     url = 'tcp://192.168.50.212:8080/' 
